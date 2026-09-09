@@ -26,16 +26,21 @@ async function loadGames() {
 }
 async function loadLeaderboard() {
   if (!supabase) {
-    list.innerHTML = '<li class="empty">Connect Supabase to show live rankings.</li>';
+    list.innerHTML =
+      '<li class="empty">Connect Supabase to show live rankings.</li>';
     return;
   }
 
-  const { data, error } = await supabase.rpc('leaderboard', {
+  const {
+    data,
+    error
+  } = await supabase.rpc('leaderboard', {
     p_limit: 10
   });
 
   if (error || !data?.length) {
-    list.innerHTML = '<li class="empty">The first player will appear here.</li>';
+    list.innerHTML =
+      '<li class="empty">The first player will appear here.</li>';
     return;
   }
 
@@ -45,7 +50,10 @@ async function loadLeaderboard() {
         <strong>#${Number(row.rank || 0)}</strong>
         ${escapeHtml(row.display_name)}
       </span>
-      <span>${Number(row.points || 0)} points</span>
+
+      <span>
+        ${Number(row.points || 0)} points
+      </span>
     </li>
   `).join('');
 }

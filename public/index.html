@@ -2,7 +2,12 @@
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
 </script>
 <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script></head><body>
-<header><a class="brand" href="/">GAME<span>HUB</span></a><nav><a href="#games">Games</a><a href="#leaderboard">Leaderboard</a><button id="authButton" class="button quiet">Sign in</button></nav></header>
+<header><a class="brand" href="/">GAME<span>HUB</span></a><nav>
+  <a href="#games">Games</a>
+  <a href="#leaderboard">Leaderboard</a>
+  <a href="/profile.html">My Profile</a>
+  <button id="authButton">Sign in</button>
+</nav></header>
 <main><section class="hero"><p class="eyebrow">PLAY • PROGRESS • REWARDS</p><h1>Your daily<br><em>playground.</em></h1><p>Drop in, play as a guest, or sign in to turn every session into a streak and a spot on the leaderboard.</p><a href="#games" class="button">Explore games <span>→</span></a></section>
 <section id="games"><div class="section-head"><div><p class="eyebrow">GAME LIBRARY</p><h2>Pick your challenge</h2></div><span id="gameCount" class="muted"></span></div><div id="gameGrid" class="game-grid"></div></section>
 <section id="leaderboard" class="leaderboard"><div><p class="eyebrow">THIS WEEK</p><h2>Top players</h2><p class="muted">Climb the rankings and keep your streak alive for rewards.</p></div><ol id="leaderboardList"><li class="loading">Loading rankings…</li></ol></section>

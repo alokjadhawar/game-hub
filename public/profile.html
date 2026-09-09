@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>My Profile — Game Hub</title>
+
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+
+  <header class="site-header">
+    <a class="brand" href="/">Game Hub</a>
+
+    <nav>
+      <a href="/">Games</a>
+      <a href="/#leaderboard">Leaderboard</a>
+      <a href="/profile.html" class="active">My Profile</a>
+    </nav>
+  </header>
+
+
+  <main class="profile-page">
+
+    <section class="profile-hero">
+
+      <p class="eyebrow">YOUR PROFILE</p>
+
+      <h1 id="profileName">Loading...</h1>
+
+      <p id="profileMessage">
+        Loading your progress...
+      </p>
+
+    </section>
+
+
+    <section id="profileStats" class="profile-stats">
+
+      <article class="profile-stat">
+        <span class="profile-stat-label">POINTS</span>
+        <strong id="points">—</strong>
+      </article>
+
+      <article class="profile-stat">
+        <span class="profile-stat-label">OVERALL RANK</span>
+        <strong id="pointsRank">—</strong>
+      </article>
+
+      <article class="profile-stat streak-stat">
+        <span class="profile-stat-label">CURRENT STREAK</span>
+        <strong id="currentStreak">—</strong>
+        <small>days</small>
+      </article>
+
+      <article class="profile-stat">
+        <span class="profile-stat-label">BEST STREAK</span>
+        <strong id="longestStreak">—</strong>
+        <small>days</small>
+      </article>
+
+      <article class="profile-stat">
+        <span class="profile-stat-label">STREAK RANK</span>
+        <strong id="streakRank">—</strong>
+      </article>
+
+      <article class="profile-stat reward-stat">
+        <span class="profile-stat-label">REWARD STATUS</span>
+        <strong id="rewardStatus">—</strong>
+      </article>
+
+    </section>
+
+
+    <section class="profile-card">
+
+      <div>
+        <p class="eyebrow">KEEP GOING</p>
+
+        <h2>Your progress matters.</h2>
+
+        <p>
+          Keep your streak alive and climb the rankings.
+          Your achievements will continue to update as you play.
+        </p>
+      </div>
+
+      <a class="play" href="/">
+        Back to games →
+      </a>
+
+    </section>
+
+
+    <section id="signedOut" class="profile-card hidden">
+
+      <p class="eyebrow">SIGN IN REQUIRED</p>
+
+      <h2>Sign in to see your profile.</h2>
+
+      <p>
+        Your personal rankings and streak information are available
+        after you sign in.
+      </p>
+
+      <a class="play" href="/">
+        Go to Game Hub →
+      </a>
+
+    </section>
+
+  </main>
+
+
+  <script src="/config.js"></script>
+  <script type="module" src="/profile.js"></script>
+
+</body>
+</html>
