@@ -25,12 +25,30 @@ async function loadGames() {
   renderGames(data?.length ? data : games);
 }
 async function loadLeaderboard() {
-  if (!supabase) { list.innerHTML = '<li class="empty">Connect Supabase to show live rankings.</li>'; return; }
-  const { data, error } = await supabase.rpc('leaderboard', { p_limit: 10 });
-  if (error || !data?.length) { list.innerHTML = '<li class="empty">The first verified player will appear here.</li>'; return; }
-  list.innerHTML = data.map(row => `<li>${escapeHtml(row.display_name)} <span>${formatSeconds(row.play_seconds)} · ${row.current_streak} day streak</span></li>`).join('');
+  if (!supabase) {
+    list.innerHTML = '<li class="empty">Connect Supabase to show live rankings.</li>';
+    return;
+  }
+
+  const { data, error } = await supabase.rpc('leaderboard', {
+    p_limit: 10
+  });
+
+  if (error || !data?.length) {
+    list.innerHTML = '<li class="empty">The first player will appear here.</li>';
+    return;
+  }
+
+  list.innerHTML = data.map(row => `
+    <li>
+      <span>
+        <strong>#${Number(row.rank || 0)}</strong>
+        ${escapeHtml(row.display_name)}
+      </span>
+      <span>${Number(row.points || 0)} points</span>
+    </li>
+  `).join('');
 }
-function formatSeconds(value) { const minutes = Math.floor(Number(value || 0) / 60); return minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes}m`; }
 
 async function updateAuth() {
   if (!supabase) return;
