@@ -60,10 +60,38 @@ async function loadLeaderboard() {
 
 async function updateAuth() {
   if (!supabase) return;
+
   const { data: { user } } = await supabase.auth.getUser();
   const button = document.querySelector('#authButton');
+
   button.textContent = user ? 'Sign out' : 'Sign in';
-  button.onclick = async () => { if (user) { await supabase.auth.signOut(); await updateAuth(); } else dialog.showModal(); };
+
+  button.onclick = async () => {
+    if (!user) {
+      dialog.showModal();
+      return;
+    }
+
+    const confirmed = window.confirm('Are you sure you want to sign out?');
+
+    if (!confirmed) {
+      return;
+    }
+
+    button.disabled = true;
+    button.textContent = 'Signing out...';
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      button.disabled = false;
+      button.textContent = 'Sign out';
+      alert('Unable to sign out. Please try again.');
+      return;
+    }
+
+    await updateAuth();
+  };
 }
 document.querySelector('.close').onclick = () => dialog.close();
 document.querySelector('#modeToggle').onclick = () => {

@@ -1,15 +1,477 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Game Hub</title><meta name="description" content="Play, build a streak, and rise through the ranks."><link rel="stylesheet" href="/styles.css"><script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-</script>
-<script defer src="https://cdn.vercel-insights.com/v1/script.js"></script></head><body>
-<header><a class="brand" href="/">GAME<span>HUB</span></a><nav>
-  <a href="#games">Games</a>
-  <a href="#leaderboard">Leaderboard</a>
-  <a href="/profile.html">My Profile</a>
-  <button id="authButton">Sign in</button>
-</nav></header>
-<main><section class="hero"><p class="eyebrow">PLAY • PROGRESS • REWARDS</p><h1>Your daily<br><em>playground.</em></h1><p>Drop in, play as a guest, or sign in to turn every session into a streak and a spot on the leaderboard.</p><a href="#games" class="button">Explore games <span>→</span></a></section>
-<section id="games"><div class="section-head"><div><p class="eyebrow">GAME LIBRARY</p><h2>Pick your challenge</h2></div><span id="gameCount" class="muted"></span></div><div id="gameGrid" class="game-grid"></div></section>
-<section id="leaderboard" class="leaderboard"><div><p class="eyebrow">THIS WEEK</p><h2>Top players</h2><p class="muted">Climb the rankings and keep your streak alive for rewards.</p></div><ol id="leaderboardList"><li class="loading">Loading rankings…</li></ol></section>
-</main><dialog id="authDialog"><button class="close" aria-label="Close">×</button><p class="eyebrow">OPTIONAL ACCOUNT</p><h2>Save your progress</h2><p class="muted">Guests can play freely. An account earns ranks, streaks, and rewards.</p><form id="authForm"><label>Email<input type="email" name="email" required autocomplete="email"></label><label>Password<input type="password" name="password" required minlength="8" autocomplete="current-password"></label><button class="button" type="submit">Continue</button></form><button id="modeToggle" class="text-button">New here? Create an account</button><p id="authMessage" role="status"></p></dialog>
-<script src="/config.js"></script><script type="module" src="/app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Game Hub</title>
+  <meta name="description" content="Play, build a streak, and rise through the ranks.">
+  <link rel="stylesheet" href="/styles.css">
+
+  <style>
+    /* Homepage visual layer — existing functionality, IDs and JS hooks are unchanged. */
+    :root {
+      --gh-bg: #08090d;
+      --gh-panel: rgba(20, 22, 31, .72);
+      --gh-panel-strong: rgba(25, 27, 38, .9);
+      --gh-border: rgba(255,255,255,.09);
+      --gh-text: #f7f7fb;
+      --gh-muted: #9da1b3;
+      --gh-accent: #9eff45;
+      --gh-accent-2: #d5ff9f;
+      --gh-shadow: 0 24px 80px rgba(0,0,0,.35);
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 15% 5%, rgba(158,255,69,.09), transparent 28rem),
+        radial-gradient(circle at 90% 18%, rgba(112,91,255,.10), transparent 26rem),
+        linear-gradient(180deg, #08090d 0%, #0b0d13 48%, #08090d 100%);
+      color: var(--gh-text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .18;
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 75%);
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: rgba(8,9,13,.72);
+      border-bottom: 1px solid var(--gh-border);
+    }
+
+    header > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand {
+      letter-spacing: -.06em;
+      font-weight: 900;
+    }
+
+    .brand span {
+      color: var(--gh-accent);
+    }
+
+    nav {
+      gap: 8px;
+    }
+
+    nav a,
+    #authButton {
+      border-radius: 999px;
+      transition: .2s ease;
+    }
+
+    nav a:hover {
+      background: rgba(255,255,255,.06);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    #authButton {
+      border: 1px solid rgba(158,255,69,.35);
+      background: rgba(158,255,69,.09);
+      color: var(--gh-accent);
+      padding: 9px 15px;
+      cursor: pointer;
+    }
+
+    #authButton:hover {
+      background: rgba(158,255,69,.16);
+      box-shadow: 0 0 24px rgba(158,255,69,.08);
+    }
+
+    main {
+      position: relative;
+    }
+
+    .hero {
+      min-height: 650px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      padding: 110px 0 120px;
+      isolation: isolate;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 520px;
+      height: 520px;
+      right: -160px;
+      top: 70px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(158,255,69,.13), transparent 68%);
+      filter: blur(5px);
+      z-index: -1;
+    }
+
+    .hero::after {
+      content: "PLAY";
+      position: absolute;
+      right: -20px;
+      bottom: 30px;
+      font-size: clamp(90px, 18vw, 260px);
+      font-weight: 950;
+      letter-spacing: -.1em;
+      line-height: .7;
+      color: rgba(255,255,255,.018);
+      z-index: -1;
+      user-select: none;
+    }
+
+    .hero .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      padding: 7px 11px;
+      border: 1px solid rgba(158,255,69,.22);
+      border-radius: 999px;
+      background: rgba(158,255,69,.055);
+      color: var(--gh-accent);
+      letter-spacing: .18em;
+      box-shadow: 0 0 30px rgba(158,255,69,.04);
+    }
+
+    .hero h1 {
+      max-width: 900px;
+      margin: 18px 0 22px;
+      font-size: clamp(58px, 9vw, 116px);
+      line-height: .87;
+      letter-spacing: -.075em;
+      text-wrap: balance;
+    }
+
+    .hero h1 em {
+      color: var(--gh-accent);
+      font-style: normal;
+      text-shadow: 0 0 45px rgba(158,255,69,.13);
+    }
+
+    .hero > p:not(.eyebrow) {
+      max-width: 650px;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.65;
+      color: #b5b8c6;
+    }
+
+    .hero .button {
+      margin-top: 28px;
+      width: fit-content;
+      min-width: 185px;
+      justify-content: center;
+      border-radius: 999px;
+      box-shadow: 0 12px 40px rgba(158,255,69,.12);
+      transition: .22s ease;
+    }
+
+    .hero .button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 50px rgba(158,255,69,.18);
+    }
+
+    #games {
+      padding-top: 40px;
+      padding-bottom: 100px;
+    }
+
+    .section-head {
+      margin-bottom: 28px;
+      align-items: end;
+    }
+
+    .section-head h2,
+    .leaderboard h2 {
+      font-size: clamp(34px, 5vw, 56px);
+      letter-spacing: -.055em;
+      margin-top: 5px;
+    }
+
+    #gameCount {
+      padding: 7px 12px;
+      border: 1px solid var(--gh-border);
+      border-radius: 999px;
+      background: rgba(255,255,255,.035);
+    }
+
+    .game-grid {
+      gap: 18px;
+    }
+
+    .game-grid .card {
+      min-height: 230px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--gh-border);
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)),
+        var(--gh-panel);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 15px 45px rgba(0,0,0,.16);
+      backdrop-filter: blur(12px);
+      transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+    }
+
+    .game-grid .card::before {
+      content: "";
+      position: absolute;
+      width: 170px;
+      height: 170px;
+      right: -75px;
+      top: -80px;
+      border-radius: 50%;
+      background: rgba(158,255,69,.08);
+      filter: blur(4px);
+      transition: .3s ease;
+    }
+
+    .game-grid .card:hover {
+      transform: translateY(-7px);
+      border-color: rgba(158,255,69,.28);
+      box-shadow: var(--gh-shadow), 0 0 45px rgba(158,255,69,.055);
+    }
+
+    .game-grid .card:hover::before {
+      transform: scale(1.35);
+      background: rgba(158,255,69,.13);
+    }
+
+    .game-grid .card h3 {
+      font-size: 28px;
+      letter-spacing: -.04em;
+      margin: 8px 0 10px;
+    }
+
+    .game-grid .card p:not(.eyebrow) {
+      color: var(--gh-muted);
+      line-height: 1.55;
+    }
+
+    .game-grid .card .eyebrow {
+      color: var(--gh-accent);
+    }
+
+    .game-grid .play {
+      display: inline-flex;
+      margin-top: 22px;
+      padding: 10px 15px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--gh-border);
+      transition: .2s ease;
+    }
+
+    .game-grid .card:hover .play {
+      background: var(--gh-accent);
+      border-color: var(--gh-accent);
+      color: #0a0c08;
+    }
+
+    .leaderboard {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--gh-border);
+      border-radius: 30px;
+      padding: clamp(28px, 5vw, 55px);
+      margin-bottom: 100px;
+      background:
+        radial-gradient(circle at 100% 0%, rgba(158,255,69,.08), transparent 28rem),
+        linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.018));
+      box-shadow: var(--gh-shadow);
+    }
+
+    .leaderboard > div:first-child {
+      margin-bottom: 26px;
+    }
+
+    #leaderboardList {
+      margin-top: 25px;
+      border-top: 1px solid var(--gh-border);
+    }
+
+    #leaderboardList li {
+      padding: 17px 4px;
+      border-bottom: 1px solid var(--gh-border);
+      transition: .18s ease;
+    }
+
+    #leaderboardList li:hover {
+      padding-left: 9px;
+      padding-right: 9px;
+      background: rgba(255,255,255,.025);
+      border-radius: 10px;
+    }
+
+    #leaderboardList li strong {
+      color: var(--gh-accent);
+      min-width: 45px;
+      display: inline-block;
+    }
+
+    dialog {
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 26px;
+      background: rgba(16,18,25,.96);
+      color: var(--gh-text);
+      box-shadow: 0 30px 100px rgba(0,0,0,.55);
+      backdrop-filter: blur(20px);
+    }
+
+    dialog::backdrop {
+      background: rgba(0,0,0,.68);
+      backdrop-filter: blur(7px);
+    }
+
+    dialog .close {
+      border-radius: 50%;
+      transition: .2s ease;
+    }
+
+    dialog .close:hover {
+      background: rgba(255,255,255,.08);
+      transform: rotate(8deg);
+    }
+
+    dialog input {
+      background: rgba(255,255,255,.045);
+      border-color: var(--gh-border);
+      border-radius: 12px;
+    }
+
+    dialog input:focus {
+      border-color: rgba(158,255,69,.55);
+      box-shadow: 0 0 0 3px rgba(158,255,69,.08);
+      outline: none;
+    }
+
+    @media (max-width: 700px) {
+      header {
+        position: relative;
+      }
+
+      nav {
+        gap: 3px;
+      }
+
+      nav a {
+        padding: 7px 6px;
+        font-size: 13px;
+      }
+
+      #authButton {
+        padding: 8px 11px;
+        font-size: 13px;
+      }
+
+      .hero {
+        min-height: 560px;
+        padding: 80px 0 90px;
+      }
+
+      .hero::after {
+        right: -30px;
+        bottom: 25px;
+        font-size: 90px;
+      }
+
+      .game-grid .card {
+        border-radius: 20px;
+      }
+
+      .leaderboard {
+        border-radius: 22px;
+        margin-bottom: 60px;
+      }
+    }
+  </style>
+
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+</head>
+
+<body>
+  <header>
+    <a class="brand" href="/">GAME<span>HUB</span></a>
+    <nav>
+      <a href="#games">Games</a>
+      <a href="#leaderboard">Leaderboard</a>
+      <a href="/profile.html">My Profile</a>
+      <button id="authButton">Sign in</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow">PLAY • PROGRESS • REWARDS</p>
+      <h1>Your daily<br><em>playground.</em></h1>
+      <p>Drop in, play as a guest, or sign in to turn every session into a streak and a spot on the leaderboard.</p>
+      <a href="#games" class="button">Explore games <span>→</span></a>
+    </section>
+
+    <section id="games">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">GAME LIBRARY</p>
+          <h2>Pick your challenge</h2>
+        </div>
+        <span id="gameCount" class="muted"></span>
+      </div>
+      <div id="gameGrid" class="game-grid"></div>
+    </section>
+
+    <section id="leaderboard" class="leaderboard">
+      <div>
+        <p class="eyebrow">THIS WEEK</p>
+        <h2>Top players</h2>
+        <p class="muted">Climb the rankings and keep your streak alive for rewards.</p>
+      </div>
+      <ol id="leaderboardList">
+        <li class="loading">Loading rankings…</li>
+      </ol>
+    </section>
+  </main>
+
+  <dialog id="authDialog">
+    <button class="close" aria-label="Close">×</button>
+    <p class="eyebrow">OPTIONAL ACCOUNT</p>
+    <h2>Save your progress</h2>
+    <p class="muted">Guests can play freely. An account earns ranks, streaks, and rewards.</p>
+
+    <form id="authForm">
+      <label>Email
+        <input type="email" name="email" required autocomplete="email">
+      </label>
+      <label>Password
+        <input type="password" name="password" required minlength="8" autocomplete="current-password">
+      </label>
+      <button class="button" type="submit">Continue</button>
+    </form>
+
+    <button id="modeToggle" class="text-button">New here? Create an account</button>
+    <p id="authMessage" role="status"></p>
+  </dialog>
+
+  <script src="/config.js"></script>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
